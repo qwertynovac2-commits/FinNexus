@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Search, Plus, Filter, ArrowRight, UserCheck, ShieldCheck, FileText, CheckCircle2, IndianRupee, Camera, Eye, Zap, FileSignature, Fingerprint, Smartphone, ShieldClose, Loader2, Info, FileSearch, Clock, ClipboardCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Plus, Filter, ArrowRight, UserCheck, ShieldCheck, FileText, CheckCircle2, IndianRupee, Camera, Eye, Zap, FileSignature, Fingerprint, Smartphone, ShieldClose, Loader2, Info, FileSearch, Clock, ClipboardCheck, Lock, Shield } from 'lucide-react';
 import { LoanApplication } from '../../types';
 import { MOCK_APPLICATIONS } from '../../constants';
 import { analyzeLoanRisk } from '../../services/geminiService';
@@ -165,7 +165,6 @@ const NewApplicationForm: React.FC<{ onCancel: () => void }> = ({ onCancel }) =>
               activeStep === s.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 
               activeStep > s.id ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'
             }`}>
-              {/* Fix: Added explicit casting to React.ReactElement<any> to allow className prop in cloneElement */}
               {React.cloneElement(s.icon as React.ReactElement<any>, { className: 'w-6 h-6' })}
             </div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-center">{s.title}</span>
@@ -513,7 +512,6 @@ const ApplicationDetail: React.FC<{ app: LoanApplication, onBack: () => void }> 
                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm border-2 ${
                          step.status === 'COMPLETED' ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-slate-200 text-slate-300'
                        }`}>
-                         {/* Fix: Added explicit casting to React.ReactElement<any> to allow className prop in cloneElement */}
                          {React.cloneElement(step.icon as React.ReactElement<any>, { className: 'w-3 h-3' })}
                        </div>
                        <div className="flex-1">
@@ -573,6 +571,9 @@ const AgreementCenter: React.FC<{
 }> = ({ app, onClose, onComplete }) => {
   const [step, setStep] = useState<'generating' | 'review' | 'esign' | 'otp' | 'success'>('generating');
   const [otp, setOtp] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [docId] = useState(() => 'AGR-' + Math.random().toString(36).substr(2, 9).toUpperCase());
+  const [timestamp] = useState(() => new Date().toISOString());
 
   const steps = [
     { id: 'review', label: 'Review' },
@@ -583,18 +584,25 @@ const AgreementCenter: React.FC<{
 
   const currentStepIdx = steps.findIndex(s => s.id === step);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (step === 'generating') {
       const timer = setTimeout(() => setStep('review'), 2000);
       return () => clearTimeout(timer);
     }
   }, [step]);
 
+  const handleVerifyOtp = () => {
+    setIsVerifying(true);
+    setTimeout(() => {
+      setIsVerifying(false);
+      setStep('success');
+    }, 2500);
+  };
+
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-6">
       <div className="bg-white w-full max-w-6xl h-[90vh] rounded-[48px] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300 border border-white/20">
         
-        {/* Header with Step Indicator */}
         <div className="px-10 py-6 border-b border-slate-100 flex justify-between items-center bg-white relative">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-600 rounded-[20px] flex items-center justify-center text-white shadow-xl shadow-blue-100">
@@ -602,7 +610,11 @@ const AgreementCenter: React.FC<{
             </div>
             <div>
               <h3 className="text-xl font-black text-slate-900 tracking-tight">Legal Execution Hub</h3>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">UIDAI & NSDL Integrated Pipeline</p>
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Pipeline ID: {docId}</p>
+                <div className="w-1 h-1 bg-slate-300 rounded-full"></div>
+                <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest">NSDL e-Sign v3.0</p>
+              </div>
             </div>
           </div>
           
@@ -627,7 +639,6 @@ const AgreementCenter: React.FC<{
           </button>
         </div>
 
-        {/* Content Area */}
         <div className="flex-1 overflow-hidden bg-slate-50 flex flex-col">
           {step === 'generating' && (
             <div className="flex-1 flex flex-col items-center justify-center space-y-6">
@@ -648,7 +659,6 @@ const AgreementCenter: React.FC<{
             <div className="flex-1 flex flex-col h-full overflow-hidden animate-in slide-in-from-right-10 duration-500">
               <div className="flex-1 flex overflow-hidden p-8 gap-8">
                 
-                {/* Left: Key Fact Statement (KFS) */}
                 <div className="w-80 bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm overflow-y-auto hidden lg:block">
                   <div className="flex items-center gap-2 mb-8 pb-6 border-b border-slate-50">
                     <Info className="w-5 h-5 text-blue-600" />
@@ -687,49 +697,45 @@ const AgreementCenter: React.FC<{
                         </div>
                       </div>
                     </div>
-
-                    <div className="text-[10px] text-slate-400 italic leading-relaxed font-medium">
-                      * All charges are in compliance with the RBI Fair Practices Code. No un-disclosed processing fees or insurance markups applied.
-                    </div>
                   </div>
                 </div>
 
-                {/* Right: Agreement Document Preview */}
                 <div className="flex-1 flex flex-col bg-slate-200 rounded-[40px] border border-slate-300/50 overflow-hidden relative shadow-inner">
-                   <div className="absolute top-6 right-6 z-10">
-                      <div className="bg-white/80 backdrop-blur-md border border-slate-200 px-5 py-2.5 rounded-2xl text-[10px] font-black text-slate-500 flex items-center gap-2 shadow-sm uppercase tracking-widest">
-                         <FileSearch className="w-4 h-4" />
-                         Legal Draft Preview
-                      </div>
-                   </div>
-                   
                    <div className="flex-1 overflow-y-auto p-16 bg-white m-6 rounded-[32px] shadow-2xl">
                       <div className="max-w-2xl mx-auto font-serif text-slate-800 leading-relaxed text-sm">
                          <div className="text-center border-b pb-12 mb-12">
-                            <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-2">Loan Agreement</h2>
-                            <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] font-sans">FinNexus OS x {app.customer.name}</p>
+                            <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900 mb-2">Facility Agreement</h2>
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] font-sans">FinNexus Operating System x {app.customer.name}</p>
+                            <p className="text-[10px] font-sans text-slate-400 mt-4 uppercase tracking-widest font-bold">Document Code: {docId}</p>
                          </div>
                          
                          <div className="space-y-10">
                             <section>
-                               <h3 className="font-bold text-slate-900 mb-3 border-l-4 border-blue-600 pl-4 font-sans uppercase text-xs tracking-widest">Clause 1: The Parties</h3>
-                               <p>THIS AGREEMENT executed on {new Date().toLocaleDateString()} by <strong>FinNexus Capital Ltd</strong> (Lender) in favor of <strong>{app.customer.name}</strong>, PAN: {app.customer.pan} (Borrower), residing at the verified KYC address.</p>
+                               <h3 className="font-bold text-slate-900 mb-3 border-l-4 border-blue-600 pl-4 font-sans uppercase text-xs tracking-widest">Section 1: The Facility</h3>
+                               <p>THIS AGREEMENT executed on {new Date().toLocaleDateString()} by <strong>FinNexus Capital Ltd</strong> (the "Lender") in favor of <strong>{app.customer.name}</strong>, PAN: {app.customer.pan} (the "Borrower").</p>
+                               <p className="mt-4">The Lender hereby agrees to grant a credit facility for an amount of <strong>INR {app.amount.toLocaleString()}</strong> for the purpose specified in the loan application.</p>
                             </section>
 
                             <section>
-                               <h3 className="font-bold text-slate-900 mb-3 border-l-4 border-blue-600 pl-4 font-sans uppercase text-xs tracking-widest">Clause 2: Facility Terms</h3>
-                               <p>The Lender grants a credit facility of <strong>INR {app.amount.toLocaleString()}</strong>. Interest shall be calculated on a Reducing Balance method at <strong>{app.interestRate}% p.a.</strong>, compounding monthly.</p>
+                               <h3 className="font-bold text-slate-900 mb-3 border-l-4 border-blue-600 pl-4 font-sans uppercase text-xs tracking-widest">Section 2: Repayment & Interest</h3>
+                               <p>The Borrower shall repay the loan amount along with interest at a fixed rate of <strong>{app.interestRate}% per annum</strong> on a reducing balance basis. The repayment shall be made in {app.tenure} monthly installments ("EMIs").</p>
+                               <p className="mt-4">In case of any delay in payment of EMI, the Borrower shall be liable to pay additional penal interest at the rate of 2% per month on the overdue amount.</p>
                             </section>
 
                             <section>
-                               <h3 className="font-bold text-slate-900 mb-3 border-l-4 border-blue-600 pl-4 font-sans uppercase text-xs tracking-widest">Clause 3: Repayment & NACH</h3>
-                               <p>Repayment shall be via {app.tenure} EMIs. The Borrower explicitly authorizes the Lender to present NACH/eNACH debit instructions on the 3rd of every month for the full installment amount.</p>
+                               <h3 className="font-bold text-slate-900 mb-3 border-l-4 border-blue-600 pl-4 font-sans uppercase text-xs tracking-widest">Section 3: Disbursement Terms</h3>
+                               <p>Disbursement of the facility is subject to completion of KYC, execution of necessary security documents, and creation of a valid NACH/e-NACH mandate for the designated repayment bank account.</p>
+                            </section>
+
+                            <section>
+                               <h3 className="font-bold text-slate-900 mb-3 border-l-4 border-blue-600 pl-4 font-sans uppercase text-xs tracking-widest">Section 4: Events of Default</h3>
+                               <p>The following events shall constitute an "Event of Default": (a) Failure to pay any EMI on the due date; (b) Use of funds for purposes other than declared; (c) Providing false or misleading information during underwriting.</p>
                             </section>
 
                             <div className="mt-24 flex justify-between pt-12 border-t border-dashed border-slate-200">
                                <div className="text-center">
                                   <div className="w-36 h-20 bg-slate-50 border border-slate-100 rounded-2xl mb-3 flex items-center justify-center text-[10px] text-slate-300 font-bold uppercase italic tracking-widest">FinNexus Signature</div>
-                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Authorized Signatory</p>
+                                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lender Signatory</p>
                                </div>
                                <div className="text-center">
                                   <div className="w-36 h-20 border-2 border-dashed border-blue-200 rounded-2xl mb-3 flex flex-col items-center justify-center bg-blue-50/30">
@@ -745,16 +751,15 @@ const AgreementCenter: React.FC<{
                 </div>
               </div>
 
-              {/* Action Bar */}
               <div className="px-10 py-8 border-t border-slate-100 bg-white flex justify-between items-center shadow-lg">
                 <div className="flex items-center gap-3 text-slate-500">
                    <Info className="w-5 h-5 text-blue-600" />
-                   <p className="text-xs font-bold">Please scroll to the end and review all legal clauses before authentication.</p>
+                   <p className="text-xs font-bold uppercase tracking-tight">Review all legal sections before proceeding to eSign.</p>
                 </div>
                 <div className="flex gap-4">
-                   <button onClick={onClose} className="px-8 py-3.5 border border-slate-200 rounded-2xl font-black text-slate-600 hover:bg-slate-50 transition-all text-xs uppercase tracking-widest">Cancel</button>
-                   <button onClick={() => setStep('esign')} className="px-12 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-2xl shadow-blue-100 hover:bg-blue-700 transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98]">
-                      Confirm & eSign
+                   <button onClick={onClose} className="px-8 py-3.5 border border-slate-200 rounded-2xl font-black text-slate-600 hover:bg-slate-50 transition-all text-xs uppercase tracking-widest">Discard</button>
+                   <button onClick={() => setStep('esign')} className="px-12 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-2xl shadow-blue-100 hover:bg-blue-700 transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest hover:scale-[1.02]">
+                      Proceed to eSign
                       <ArrowRight className="w-4 h-4" />
                    </button>
                 </div>
@@ -768,38 +773,36 @@ const AgreementCenter: React.FC<{
                    <div className="w-24 h-24 bg-amber-50 rounded-[32px] flex items-center justify-center mx-auto mb-10 shadow-inner">
                       <Fingerprint className="w-12 h-12 text-amber-600" />
                    </div>
-                   <h4 className="text-2xl font-black text-slate-900 tracking-tight">Legal Consent & Identity</h4>
-                   <p className="text-sm text-slate-500 mt-4 mb-12 leading-relaxed px-6 font-medium">You are about to execute a legally binding loan contract. We will verify your identity via UIDAI Aadhaar e-KYC.</p>
+                   <h4 className="text-2xl font-black text-slate-900 tracking-tight">Digital Execution Consent</h4>
+                   <p className="text-sm text-slate-500 mt-4 mb-12 leading-relaxed px-6 font-medium">You are providing explicit legal consent to execute the facility agreement using NSDL e-Gov e-Sign services.</p>
                    
                    <div className="p-8 bg-slate-50 rounded-[32px] border border-slate-100 text-left mb-12">
-                      <div className="flex justify-between items-center mb-6">
-                         <div className="flex items-center gap-2">
-                            <ShieldCheck className="w-5 h-5 text-blue-600" />
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">TSP: NSDL e-Gov</span>
-                         </div>
-                      </div>
                       <div className="flex gap-4 p-5 bg-white rounded-2xl border border-slate-200/50 shadow-sm">
-                         <input type="checkbox" className="mt-1 w-5 h-5 rounded-lg text-blue-600 border-slate-300 focus:ring-blue-500 transition-all" defaultChecked />
-                         <p className="text-[11px] font-bold text-slate-600 leading-relaxed">I confirm that I have read the Facility Agreement and voluntarily provide my explicit consent to eSign this document via UIDAI's secure e-KYC services.</p>
+                         <input type="checkbox" className="mt-1 w-5 h-5 rounded-lg text-blue-600 border-slate-300 focus:ring-blue-500" defaultChecked />
+                         <p className="text-[11px] font-bold text-slate-600 leading-relaxed uppercase">I accept the terms and voluntarily provide consent for UIDAI OTP based e-KYC signature.</p>
                       </div>
                    </div>
 
-                   <button onClick={() => setStep('otp')} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black shadow-2xl hover:bg-slate-800 transition-all hover:-translate-y-1 active:scale-95 uppercase tracking-widest text-xs">Authorize OTP</button>
-                   <div className="absolute top-0 right-0 p-6 opacity-[0.03]">
-                      <FileText className="w-48 h-48 rotate-12" />
-                   </div>
+                   <button onClick={() => setStep('otp')} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black shadow-2xl hover:bg-slate-800 transition-all hover:-translate-y-1 active:scale-95 uppercase tracking-widest text-xs">Verify Aadhaar OTP</button>
                 </div>
              </div>
           )}
 
           {step === 'otp' && (
              <div className="flex-1 flex flex-col items-center justify-center max-w-lg mx-auto w-full p-8 animate-in slide-in-from-bottom-8 duration-500">
-                <div className="bg-white p-12 rounded-[48px] shadow-2xl border border-slate-100 w-full text-center">
+                <div className="bg-white p-12 rounded-[48px] shadow-2xl border border-slate-100 w-full text-center relative overflow-hidden">
+                   {isVerifying && (
+                     <div className="absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center p-12">
+                        <Loader2 className="w-16 h-16 text-blue-600 animate-spin mb-6" />
+                        <h5 className="text-xl font-black text-slate-900 tracking-tight">Authenticating with UIDAI...</h5>
+                     </div>
+                   )}
+
                    <div className="w-24 h-24 bg-blue-50 rounded-[32px] flex items-center justify-center mx-auto mb-10 shadow-inner">
                       <Smartphone className="w-12 h-12 text-blue-600 animate-pulse" />
                    </div>
-                   <h4 className="text-2xl font-black text-slate-900 tracking-tight">Aadhaar Authentication</h4>
-                   <p className="text-sm text-slate-500 mt-4 mb-12 px-6 font-medium">Please enter the 6-digit secure code sent to your UIDAI registered mobile ending in <strong>****{app.customer.phone.slice(-4)}</strong></p>
+                   <h4 className="text-2xl font-black text-slate-900 tracking-tight">Enter Secure Code</h4>
+                   <p className="text-sm text-slate-500 mt-4 mb-12 px-6 font-medium uppercase tracking-tight">Sent to mobile ending in ****{app.customer.phone.slice(-4)}</p>
                    
                    <div className="flex justify-center gap-4 mb-12">
                       {[1,2,3,4,5,6].map(i => (
@@ -807,7 +810,6 @@ const AgreementCenter: React.FC<{
                           key={i} 
                           type="text" 
                           maxLength={1} 
-                          autoFocus={i === 1}
                           value={otp[i-1] || ''}
                           onChange={(e) => {
                              const val = e.target.value;
@@ -815,57 +817,37 @@ const AgreementCenter: React.FC<{
                                 setOtp(prev => (prev + val).slice(0, 6));
                              }
                           }}
-                          className="w-14 h-16 bg-slate-50 border-2 border-slate-200 rounded-2xl text-center text-3xl font-black focus:ring-8 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition-all shadow-sm" 
+                          className="w-14 h-16 bg-slate-50 border-2 border-slate-200 rounded-2xl text-center text-3xl font-black focus:border-blue-600 outline-none transition-all shadow-sm" 
                         />
                       ))}
                    </div>
 
                    <button 
-                    disabled={otp.length < 6}
-                    onClick={() => setStep('success')} 
-                    className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black shadow-2xl shadow-blue-100 hover:bg-blue-700 disabled:opacity-40 transition-all hover:-translate-y-1 active:scale-95 uppercase tracking-widest text-xs"
+                    disabled={otp.length < 6 || isVerifying}
+                    onClick={handleVerifyOtp} 
+                    className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black shadow-2xl shadow-blue-100 hover:bg-blue-700 disabled:opacity-40 transition-all uppercase tracking-widest text-xs"
                    >
-                     Complete Execution
+                     Apply Signature
                    </button>
-                   <div className="mt-10 flex justify-center items-center gap-2">
-                      <span className="text-[11px] text-slate-400 font-bold uppercase tracking-widest">Didn't receive code?</span>
-                      <button className="text-[11px] font-black text-blue-600 hover:underline uppercase tracking-widest">Resend OTP</button>
-                   </div>
                 </div>
              </div>
           )}
 
           {step === 'success' && (
              <div className="flex-1 flex flex-col items-center justify-center text-center p-16 space-y-10 animate-in zoom-in-90 duration-700">
-                <div className="relative">
-                   <div className="w-40 h-40 bg-green-100 rounded-[56px] flex items-center justify-center shadow-[0_32px_64px_rgba(22,163,74,0.15)]">
-                      <CheckCircle2 className="w-20 h-20 text-green-600" />
-                   </div>
-                   <div className="absolute -top-4 -right-4 w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-xl border border-slate-100">
-                      <ShieldCheck className="w-7 h-7 text-blue-600" />
-                   </div>
+                <div className="w-40 h-40 bg-green-100 rounded-[56px] flex items-center justify-center shadow-xl">
+                   <CheckCircle2 className="w-20 h-20 text-green-600" />
                 </div>
                 <div>
-                   <h4 className="text-4xl font-black text-slate-900 tracking-tighter">Agreement Executed</h4>
-                   <p className="text-slate-500 mt-4 max-w-md mx-auto leading-relaxed font-medium">The digital facility agreement is now active and legally binding. Audit trail recorded in CERSAI pipeline.</p>
-                </div>
-                
-                <div className="flex gap-5 p-8 bg-white border border-slate-100 rounded-[40px] items-center text-left shadow-2xl w-full max-w-md">
-                   <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100"><FileText className="w-8 h-8 text-slate-400" /></div>
-                   <div className="flex-1">
-                      <p className="text-xs font-black text-slate-900 tracking-tight truncate">Signed_Agreement_{app.id.split('-')[1]}.pdf</p>
-                      <p className="text-[10px] text-slate-400 font-black uppercase mt-2 tracking-widest">SHA-256: Verified • 1.4 MB</p>
-                   </div>
-                   <button className="p-4 hover:bg-slate-50 rounded-2xl transition-all text-blue-600 group">
-                      <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                   </button>
+                   <h4 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Contract Active</h4>
+                   <p className="text-slate-500 mt-4 max-w-md mx-auto leading-relaxed font-bold uppercase text-xs tracking-widest">Document Hash: {docId.split('-')[1]}</p>
                 </div>
                 
                 <button 
                   onClick={onComplete}
-                  className="px-20 py-6 bg-slate-900 text-white rounded-[24px] font-black shadow-[0_32px_64px_rgba(0,0,0,0.2)] hover:bg-slate-800 hover:-translate-y-1 transition-all text-xs tracking-[0.2em] uppercase"
+                  className="px-20 py-6 bg-slate-900 text-white rounded-[24px] font-black shadow-2xl hover:bg-slate-800 hover:-translate-y-1 transition-all text-xs tracking-[0.2em] uppercase"
                 >
-                  Finalize Origination
+                  Finalize Disbursement
                 </button>
              </div>
           )}

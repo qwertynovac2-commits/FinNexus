@@ -7,8 +7,10 @@ import LoanManager from './components/LMS/LoanManager';
 import CollectionsHub from './components/LMS/Collections';
 import AccountingEngine from './components/Accounting/AccountingEngine';
 import RegulatoryCenter from './components/Compliance/RegulatoryCenter';
+import MasterDataHub from './components/Masters/MasterDataHub';
+import BIAnalytics from './components/BI/BIAnalytics';
 import AIChatbot from './components/AIChatbot';
-import { Bell, Search, User, ShieldCheck } from 'lucide-react';
+import { Bell, Search, ShieldCheck } from 'lucide-react';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -21,6 +23,8 @@ const App: React.FC = () => {
       case 'collections': return <CollectionsHub />;
       case 'accounting': return <AccountingEngine />;
       case 'compliance': return <RegulatoryCenter />;
+      case 'settings': return <MasterDataHub />;
+      case 'analytics': return <BIAnalytics />;
       default: return (
         <div className="flex flex-col items-center justify-center h-[70vh] text-slate-400 space-y-4">
           <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center">
