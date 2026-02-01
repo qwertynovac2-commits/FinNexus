@@ -1,0 +1,8 @@
+{
+  "name": "FinNexus NBFC OS",
+  "description": "A comprehensive cloud-native Loan Origination (LOS) and Management System (LMS) specifically tailored for Indian NBFCs, featuring digital KYC, AI-driven underwriting, and automated loan servicing.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
