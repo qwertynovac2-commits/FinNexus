@@ -1,2 +1,20 @@
-FinNexus is an all-in-one lending platform built specifically for Indian NBFCs that handles everything from the moment a customer applies for a loan to the day they pay it off. Think of it as your complete digital lending assistant - it verifies customer documents using Aadhaar and PAN, pulls credit scores from bureaus like CIBIL, analyzes bank statements to check if someone can actually repay, and then auto-generates loan agreements that customers can sign digitally. Once approved, it disburses money directly to bank accounts, sets up automatic EMI deductions through NACH, sends payment reminders via SMS and WhatsApp, and manages collections if someone misses a payment. The platform also takes care of all the boring but critical stuff like RBI compliance reports, accounting entries, NPA tracking, and generating statements for customers. What makes FinNexus special is that it uses AI to spot fraud, predict who might default, and even auto-approve low-risk loans in minutes, while giving you real-time dashboards to see exactly how your lending business is performing - all from one system instead of juggling five different software tools.
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
+# Run and deploy your AI Studio app
+
+This contains everything you need to run your app locally.
+
+View your app in AI Studio: https://ai.studio/apps/drive/19m9RTQa6dd0bVzyf-3N8puqS9VdnxpbR
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

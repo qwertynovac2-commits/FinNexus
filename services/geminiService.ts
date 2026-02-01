@@ -30,8 +30,9 @@ export const getAIAssistantResponse = async (prompt: string, context?: any) => {
 
 export const analyzeLoanRisk = async (applicationData: any) => {
   try {
+    // Upgraded to gemini-3-pro-preview for complex text tasks requiring advanced reasoning.
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-3-pro-preview',
       contents: `Analyze the following Indian NBFC loan application for risk markers. 
       Data: ${JSON.stringify(applicationData)}
       `,

@@ -1,7 +1,8 @@
 
-export type LoanStatus = 'PENDING' | 'KYC_COMPLETED' | 'UNDERWRITING' | 'APPROVED' | 'DISBURSED' | 'REJECTED' | 'CLOSED';
-export type DPDLevel = '0' | '1-30' | '31-60' | '61-90' | 'NPA';
+export type LoanStatus = 'LEAD' | 'KYC_PENDING' | 'UNDERWRITING' | 'SANCTIONED' | 'AGREEMENT_PENDING' | 'SIGNED' | 'DISBURSED' | 'REJECTED' | 'CLOSED' | 'NPA';
+export type DPDLevel = '0' | '1-30' | '31-60' | '61-90' | '90+';
 export type ProductType = 'PERSONAL' | 'BUSINESS' | 'MSME' | 'GOLD' | 'VEHICLE' | 'LAP';
+export type TransactionType = 'CREDIT' | 'DEBIT';
 
 export interface Customer {
   id: string;
@@ -13,6 +14,17 @@ export interface Customer {
   kycStatus: 'PENDING' | 'VERIFIED' | 'REJECTED';
   cibilScore?: number;
   income?: number;
+  employmentType?: 'SALARIED' | 'SELF_EMPLOYED' | 'BUSINESS';
+}
+
+export interface EMISlot {
+  installmentNo: number;
+  date: string;
+  amount: number;
+  principal: number;
+  interest: number;
+  balance: number;
+  status: 'PAID' | 'PENDING' | 'OVERDUE';
 }
 
 export interface LoanApplication {
@@ -26,37 +38,30 @@ export interface LoanApplication {
   createdAt: string;
   riskScore?: number;
   riskFactors?: string[];
-}
-
-export interface EMISlot {
-  date: string;
-  amount: number;
-  principal: number;
-  interest: number;
-  balance: number;
-  status: 'PAID' | 'PENDING' | 'OVERDUE';
+  esignStatus?: 'NOT_STARTED' | 'PENDING' | 'COMPLETED';
+  documents?: { name: string; status: 'UPLOADED' | 'VERIFIED' | 'REJECTED' }[];
 }
 
 export interface LoanAccount extends LoanApplication {
+  disbursementDate?: string;
   outstandingAmount: number;
   nextEMIDate: string;
-  lastPaymentDate?: string;
+  emiAmount: number;
   dpd: number;
   dpdBucket: DPDLevel;
   schedule: EMISlot[];
 }
 
+export interface LedgerEntry {
+  id: string;
+  date: string;
+  description: string;
+  accountHead: string;
+  type: TransactionType;
+  amount: number;
+}
+
 export interface Message {
   role: 'user' | 'model';
   text: string;
-}
-
-export interface CollectionCase {
-  loanId: string;
-  customerName: string;
-  overdueAmount: number;
-  dpd: number;
-  lastAction: string;
-  assignedTo: string;
-  status: 'PTP' | 'FOLLOW_UP' | 'LEGAL' | 'SETTLED';
 }
